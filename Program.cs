@@ -1,4 +1,4 @@
-﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Tooling.Connector;
@@ -11,7 +11,7 @@ namespace TestDynamics365Application
     class Program
     {
         //Authenticate
-        private static string connectionString = @"AuthType=OAuth; Username= ; Password= ; Url= ; 
+        private static string connectionString = @"AuthType=OAuth; Username=; Password=; Url=; 
             AppId=51f81489-12ee-4a9e-aaae-a2591f45987d; RedirectUri=app://58145B91-0C36-4500-8554-080854F2AC97;";
 
         private static CrmServiceClient servise = new CrmServiceClient(connectionString);
@@ -30,7 +30,7 @@ namespace TestDynamics365Application
             Console.WriteLine($"Now you have {rentEntitiesNumber} of entities\nWrite how many entities you need to create");
             var needToCreate = Convert.ToInt32(Console.ReadLine());
 
-            for (int i = 0; i < needToCreate; i++) //Need to create 40 000 Rent Entities
+            for (int i = rentEntitiesNumber; i < needToCreate; i++) //Need to create 40 000 Rent Entities
             {
                 var reservedPickup = GetRangomPickupDate();
                 var reservedHandover = GetRandomHandoverDate(reservedPickup);
@@ -42,8 +42,6 @@ namespace TestDynamics365Application
                 rent["new_customer"] = GetRandomCarentEntity(customersList);
                 rent["new_pickuplocation"] = GetRandomPickupOrHandoverLocation();
                 rent["new_returnlocation"] = GetRandomPickupOrHandoverLocation();
-                rent["new_actualpickup"] = reservedPickup;
-                rent["new_actualreturn"] = reservedHandover;
                 rent["statuscode"] = GetRandomStatus(rent);
                 rent["new_price_rent"] = HowMachCustomerPaid(carClassCollection, rent.GetAttributeValue<EntityReference>("new_carclassrent"), reservedPickup, reservedHandover);
 
@@ -65,7 +63,7 @@ namespace TestDynamics365Application
 
         public static DateTime GetRandomHandoverDate(DateTime startDate)
         {
-            //handover maximum 30 days and we have 1440 minutes in hour
+            //handover maximum 30 days
             return startDate.AddDays(random.Next(1, 29)).AddMinutes(random.Next(0, 1439));
         }
 
@@ -90,6 +88,7 @@ namespace TestDynamics365Application
         public static EntityReference GetRandomCarWithCarClassRespect(EntityReference carClass, List<Entity> carsCollection)
         {
             var collection = carsCollection.Where(c => c.GetAttributeValue<EntityReference>("new_carclass").Id == carClass.Id);
+
             var newCollection = collection.ToList();
 
             return newCollection[random.Next(0, newCollection.Count())].ToEntityReference();
@@ -149,6 +148,7 @@ namespace TestDynamics365Application
             if (a > 200 && 250 >= a)
             {
                 entity["new_pickupreportlookup"] = CreateTransferReport(entity, "new_reservedpickup", false);
+                entity["new_actualpickup"] = entity.GetAttributeValue<DateTime>("new_reservedpickup");
                 entity["new_paid"] = GetRandomProbabilyty(99.9); //paid with probability 99.9%
                 return new OptionSetValue(renting);
             }
@@ -158,6 +158,8 @@ namespace TestDynamics365Application
                 entity["statecode"] = new OptionSetValue(1);
                 entity["new_pickupreportlookup"] = CreateTransferReport(entity, "new_reservedpickup", false);
                 entity["new_returnreportlookup"] = CreateTransferReport(entity, "new_reservedhandover", true);
+                entity["new_actualpickup"] = entity.GetAttributeValue<DateTime>("new_reservedpickup");
+                entity["new_actualreturn"] = entity.GetAttributeValue<DateTime>("new_reservedhandover");
                 entity["new_paid"] = GetRandomProbabilyty(99.98); //paid with probability 99.98%
                 return new OptionSetValue(returned);
             }
@@ -177,6 +179,5 @@ namespace TestDynamics365Application
             var currentCar = carsClassList.FirstOrDefault(c => c.Id == carClassRef.Id);
 
             return new Money(currentCar.GetAttributeValue<Money>("new_price").Value * (decimal)rentedDays.TotalDays);
-
         }
     }
