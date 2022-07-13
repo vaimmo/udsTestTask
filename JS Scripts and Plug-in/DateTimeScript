@@ -1,0 +1,33 @@
+var Sdk = window.Sdk || {};
+(function () {
+    this.pickupDateTimeOnChange = function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var now = new Date();
+
+        if (Xrm.Page.getAttribute("new_reservedpickup").getValue() <= now) {
+            formContext.getControl("new_reservedpickup").setNotification("Pickup date or time cannot be earlier than current date ", "datemsg");
+        }
+
+        else {
+            formContext.getControl("new_reservedpickup").clearNotification("datemsg");
+        }
+    }
+
+    this.returnDateTimeOnChange = function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var pickupTime = new Date(Xrm.Page.getAttribute("new_reservedpickup").getValue());
+
+        if (Xrm.Page.getAttribute("new_reservedhandover").getValue() <= pickupTime) {
+            formContext.getControl("new_reservedhandover").setNotification("Return date or time cannot be earlier than Reserved pickup date or time", "datemsg");
+        }
+
+        else {
+            formContext.getControl("new_reservedhandover").clearNotification("datemsg");
+        }
+    }
+}
+).call(Sdk);
+/*
+Reserved return date/time cannot be earlier than Reserved pickup date/time
+Reserved pickup date/time cannot be earlier than current date  
+*/

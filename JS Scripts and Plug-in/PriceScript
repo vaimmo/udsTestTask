@@ -1,0 +1,59 @@
+var Sdk = window.Sdk || {};
+(function () {
+
+    this.priceIsUnshangable = function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var formtype = formContext.ui.getFormType();
+
+        if (formtype == 1) {
+            formContext.getControl("new_price_rent").setDisabled(true);
+        }
+
+        else if (formtype == 2) {
+            formContext.getControl("new_price_rent").setDisabled(true);
+        }
+    }
+
+    this.priceAutoCalculationOnLoad = function (executionContext) {
+
+        var formContext = executionContext.getFormContext();
+
+        var pickupLoc = formContext.getAttribute("new_pickuplocation").getText();
+        var returnLoc = formContext.getAttribute("new_returnlocation").getText();
+
+        var startDate = new Date(Xrm.Page.getAttribute("new_reservedpickup").getValue());
+        var endDate = new Date(Xrm.Page.getAttribute("new_reservedhandover").getValue());
+
+        var days = Math.ceil(((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)) + 1);
+
+        var lookup = formContext.getAttribute("new_carclassrent").getValue();
+        var id = lookup[0].id;
+
+        if (formContext.getAttribute("new_carclassrent").getValue() != null &&
+            formContext.getAttribute("new_reservedpickup").getValue() != null &&
+            formContext.getAttribute("new_reservedhandover").getValue() != null) {
+
+            Xrm.WebApi.retrieveRecord("new_carclass", id, "?$select=new_price, new_classcode").then(
+                function success(result) {
+                    var priceForLocation = 0;
+
+                    if (pickupLoc != "Office" && returnLoc != "Office") {
+                        priceForLocation = 200;
+                    }
+
+                    else if ((pickupLoc != "Office" && returnLoc == "Office") ||
+                        (pickupLoc == "Office" && returnLoc != "Office")) {
+                        priceForLocation = 100;
+                    }
+
+                    var price = result.new_price;
+                    Xrm.Page.getAttribute("new_price_rent").setValue(price * days + priceForLocation);
+                },
+                function (error) {
+                    alert(error.message + "Error");
+                }
+            );
+        }
+    }
+}
+).call(Sdk);

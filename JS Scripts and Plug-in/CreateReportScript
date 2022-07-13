@@ -1,0 +1,88 @@
+//function for button to open quick from
+function OpenRecord(primaryControl) {
+
+    var entityFormOptions = {};
+    entityFormOptions["entityName"] = "new_cartransferreport";
+    entityFormOptions["useQuickCreateForm"] = true;
+    var formParameters = {};
+    Xrm.Navigation.openForm(entityFormOptions, formParameters).then(
+        function (success) {
+            debugger;
+            var options = "?$select=new_date,new_type";
+            Xrm.WebApi.retrieveRecord(success.savedEntityReference[0].entityType, success.savedEntityReference[0].id, options).then(
+                function (result) {
+                    var resultType = result.new_type;
+                    var type = false; //return = true, pickup = false
+
+                    if (resultType == type) {
+                        var resultDate = new Date(result.new_date);
+                        Xrm.Page.getAttribute("new_pickupreportlookup").setValue(success.savedEntityReference);
+                        Xrm.Page.getAttribute("new_actualpickup").setValue(resultDate);
+                        
+                    } else {
+                        var resultDate = new Date(result.new_date);
+                        Xrm.Page.getAttribute("new_returnreportlookup").setValue(success.savedEntityReference);
+                        Xrm.Page.getAttribute("new_actualreturn").setValue(resultDate);
+                    }
+                },
+                function (fail) {
+                    alert(fail.massage);
+                }
+            );
+            console.log(success);
+        },
+
+        function (error) {
+            console.log(error);
+        }
+    );
+}
+
+
+//script to set description required
+var Sdk = window.Sdk || {};
+(function () {
+    this.lock = function (executionContext) {
+        var formContext = executionContext.getFormContext();
+
+        var valueYes = 1;
+
+        if (formContext.getAttribute("new_damages").getValue() == valueYes) {
+            formContext.getAttribute("new_damagedescription").setRequiredLevel("required");
+        }
+        else {
+            formContext.getAttribute("new_damagedescription").setValue(null); //clean the description field
+            formContext.getAttribute("new_damagedescription").setRequiredLevel("none");
+        }
+    }
+}
+).call(Sdk);
+
+//Solution how to set value from main rent entity to quic view form car transfer report entity
+var Sdk = window.Sdk || {};
+(function () {
+    this.setValsForQuickCreate = function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        if (formContext.getControl("new_car_rent").getAttribute().getValue() != null) {
+            window.top.attributename = formContext.getControl("new_car_rent").getAttribute().getValue();
+        }
+        else {
+            window.top.attributename = Xrm.Page.getAttribute("new_car_rent").getValue();
+        }
+    }
+
+    this.setValFromMainForm = function () {
+        Xrm.Page.getAttribute("new_car_lookup").setValue(window.top.attributename);
+    }
+}
+).call(Sdk);
+
+//script to set time in transfer report
+var Sdk = window.Sdk || {};
+(function () {
+    this.dateTimeOnChange = function () {
+        var now = new Date();
+        Xrm.Page.getAttribute("new_date").setValue(now);
+    }
+}
+).call(Sdk);

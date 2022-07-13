@@ -1,0 +1,31 @@
+var Sdk = window.Sdk || {};
+( function () {
+        this.rentingStatusCheck = function (executionContext) {
+            var formContext = executionContext.getFormContext();
+            
+            var status = formContext.getAttribute("statuscode").getText();
+
+            var isPaid = formContext.getAttribute("new_paid").getValue();
+    
+            if(status == "Renting" && isPaid == 0) {
+                formContext.getControl("new_paid").setNotification("Car rent is not yet paid. Car cannot be rented", "datemsg");;
+            }
+            else {
+                formContext.getControl("new_paid").clearNotification("datemsg");
+            }
+        }
+
+        this.obligatoryCarField = function(executionContext) {
+            var formContext = executionContext.getFormContext();
+    
+            var status = formContext.getAttribute("statuscode").getText();
+    
+            if(status == "Confirmed" || status == "Renting" || status == "Returned") {
+                Xrm.Page.getAttribute("new_car_rent").setRequiredLevel("required");
+            }
+            else {
+                Xrm.Page.getAttribute("new_car_rent").setRequiredLevel("none");
+            }
+        }
+    }
+).call(Sdk);
