@@ -165,7 +165,7 @@ namespace TestDynamics365Application
 
         private static bool GetRandomProbabilyty(double probabilityPercent)
         {
-            var a = random.Next(1, 10000) <= probabilityPercent * 100 ? true : false;
+            var a = random.Next(1, 10000) => probabilityPercent * 100 ? true : false;
 
             return a;
         }
