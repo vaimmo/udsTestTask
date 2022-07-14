@@ -14,7 +14,5 @@ var Sdk = window.Sdk || {};
 }
 ).call(Sdk);
 /*
-When user change status to either Confirmed/Renting/Returned – Car field should become obligatory
-Car field should be filtered based on Car class field
 If Car class field is empty – Car field should be disabled
 */
