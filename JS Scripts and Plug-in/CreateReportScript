@@ -7,7 +7,6 @@ function OpenRecord(primaryControl) {
     var formParameters = {};
     Xrm.Navigation.openForm(entityFormOptions, formParameters).then(
         function (success) {
-            debugger;
             var options = "?$select=new_date,new_type";
             Xrm.WebApi.retrieveRecord(success.savedEntityReference[0].entityType, success.savedEntityReference[0].id, options).then(
                 function (result) {
